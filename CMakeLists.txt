@@ -21,22 +21,35 @@ else()
     message(STATUS "Using SPARTA_ROOT from environment: ${SPARTA_ROOT}")
 endif()
 
+find_package(HDF5 REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(sparta REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options system filesystem)
+find_package(SQLite3 REQUIRED)
+
 include_directories(${SPARTA_ROOT}/include)
 link_directories(${SPARTA_ROOT}/lib)
 
-set(SOURCES
-    src/main.cpp
-    src/CPUFactory.cpp
-)
+file (GLOB SOURCES "src/*.cpp")
 
 add_executable(llangardaix ${SOURCES})
 
 target_link_libraries(llangardaix
-    sparta_core
-    sparta_utils
-    sparta_simulation
-    sparta_app
+    sparta
+    Boost::system
+    Boost::filesystem
+    Boost::program_options
+    Boost::timer
+    Boost::serialization
+    simdb
+    sqlite3
+    ZLIB::ZLIB
+    HDF5::HDF5
+    yaml-cpp
+    pthread
+    dl
 )
 
+target_include_directories(llangardaix PRIVATE ${Boost_INCLUDE_DIRS})
 target_compile_options(llangardaix PRIVATE -Wall -Wextra -Wpedantic)
 

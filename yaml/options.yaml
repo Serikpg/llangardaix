@@ -1,0 +1,94 @@
+# my_options.yaml - Unified simulation and topology configuration with recursive units
+
+# Simulation parameters (these would be consumed by the Simulator or other parts of the app)
+simulation_params:
+  run_cycles: 100000
+  output_file: "simulation_results.txt"
+  enable_tracing: true
+
+# The 'topology' section: defines the entire CPU hierarchy recursively
+topology:
+  units:
+    # Top-level CPU node
+    - name: "cpu0"
+      parent_name: "" # Empty, as it's the root of the CPU hierarchy
+      human_name: "The main CPU node"
+      group_name: ""
+      group_id: 0
+      factory_name: "CPUFactory"
+      is_private_subtree: false
+      parameters:
+        num_cores: 2
+        clock_speed_ghz: 2.5
+
+      # Nested definition of children units directly within cpu0
+      children_units:
+        # Core 0, child of cpu0
+        - name: "core0"
+          human_name: "RISC-V Core 0"
+          group_name: "cores"
+          group_id: 0
+          factory_name: "CoreFactory"
+          is_private_subtree: true
+          parameters:
+            issue_width: 2
+            pipeline_depth: 10
+
+          # Nested children for core0 (e.g., its L1 cache)
+          children_units:
+            - name: "l1_cache0"
+              human_name: "L1 Cache for Core 0"
+              group_name: "caches"
+              group_id: 0
+              factory_name: "CacheFactory"
+              is_private_subtree: true
+              parameters:
+                size_kb: 32
+                associativity: 8
+
+          # Connections internal to core0's subtree (e.g., core0 to its L1 cache)
+          internal_connections:
+            - output_port_name: "core0.out_port"
+              input_port_name: "l1_cache0.in_port"
+
+        # Core 1, child of cpu0
+        - name: "core1"
+          human_name: "RISC-V Core 1"
+          group_name: "cores"
+          group_id: 1
+          factory_name: "CoreFactory"
+          is_private_subtree: true
+          parameters:
+            issue_width: 2
+            pipeline_depth: 10
+
+          # Nested children for core1 (e.g., its L1 cache)
+          children_units:
+            - name: "l1_cache1"
+              human_name: "L1 Cache for Core 1"
+              group_name: "caches"
+              group_id: 1
+              factory_name: "CacheFactory"
+              is_private_subtree: true
+              parameters:
+                size_kb: 32
+                associativity: 8
+
+          # Connections internal to core1's subtree
+          internal_connections:
+            - output_port_name: "core1.out_port"
+              input_port_name: "l1_cache1.in_port"
+
+      # Connections internal to cpu0's subtree (e.g., L1 caches to cpu0's bus)
+      internal_connections:
+        - output_port_name: "l1_cache0.out_port"
+          input_port_name: "cpu0.bus_port"
+        - output_port_name: "l1_cache1.out_port"
+          input_port_name: "cpu0.bus_port"
+
+  # Global connections (e.g., cpu0 to memory controller, if defined outside cpu0)
+  # These are connections at the highest level, not nested within any specific unit.
+  global_connections:
+    - output_port_name: "cpu0.bus_port"
+      input_port_name: "memory_controller.in_port" # Example: connect to an external memory controller
+

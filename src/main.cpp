@@ -1,8 +1,11 @@
 
 #include "sparta/app/CommandLineSimulator.hpp"
+#include "sparta/app/Simulation.hpp"
 
 #include "Simulator.hpp"
 #include "CPUFactory.hpp"
+
+#include <iostream> // for error output
 
 const char USAGE[] =
     "Usage:\n"
@@ -23,13 +26,12 @@ int main(int argc, char **argv)
     // create Sparta command-line simulator
 
     sparta::app::CommandLineSimulator cls(USAGE, DEFAULTS);
-    auto& app_opts = cls.getApplicationOptions();
-    
+
     // parse the command-line arguments and return error in this case
     int err_code = 0;
     if (!cls.parse(argc, argv, err_code))
         return err_code;
-    
+
     sparta::Scheduler scheduler;
     Simulator sim(scheduler);
 
